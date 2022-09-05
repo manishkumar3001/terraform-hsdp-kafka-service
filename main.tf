@@ -1,5 +1,5 @@
 locals {
-  postfix            = var.name_postfix != "" ? var.name_postfix : random_pet.name.id
+  postfix = var.name_postfix != "" ? var.name_postfix : random_pet.name.id
 }
 
 resource "random_pet" "name" {
@@ -9,8 +9,9 @@ resource "random_pet" "name" {
 resource "cloudfoundry_service_instance" "kafka" {
   name  = "tf-kafka-${local.postfix}"
   space = var.cf_space_id
+  tags  = var.tags
   //noinspection HILUnresolvedReference
-  service_plan                   = data.cloudfoundry_service.kafka.service_plans[var.service_plan]
+  service_plan = data.cloudfoundry_service.kafka.service_plans[var.service_plan]
 }
 
 resource "cloudfoundry_service_key" "key" {
@@ -30,7 +31,7 @@ resource "cloudfoundry_app" "exporter" {
   }
 
   command = "kafka_exporter --sasl.enabled --kafka.server=${cloudfoundry_service_key.key.credentials.uri} --sasl.username=${cloudfoundry_service_key.key.credentials.username} --sasl.password=${cloudfoundry_service_key.key.credentials.password} --sasl.mechanism=plain --tls.enabled --tls.insecure-skip-tls-verify --log.enable-sarama"
-  
+
   environment = merge({}, var.exporter_environment)
 
   //noinspection HCLUnknownBlockType
